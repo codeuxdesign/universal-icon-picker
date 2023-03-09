@@ -303,50 +303,58 @@ var loadedDependencies = [];
                 });
             }
 
-            let iconLib = this.options.iconLibraries[i];
+            let iconLibObj = this.options.iconLibraries[i];
 
-            await fetch(iconPickerUrl + 'icons-libraries/' + iconLib)
-                .then(response => response.json())
-                .then(data => {
-                    // Success!
-                    var camelCasedIconLibrary = iconLib.replace(/-([a-z])/g, function (g) { return g[1].toUpperCase(); }).replace(/\.[a-z.]+$/, '');
-                    let newLibrary = {};
-                    newLibrary[camelCasedIconLibrary] = data;
-                    Object.assign(this.iconLibraries, newLibrary);  // new icon library merge
-                    if (i + 1 === this.options.iconLibraries.length) {
-                        //set icon and sidebar list
-                        this._setIconAndSidebarList();
+            let _handleIconLib = (iconLib, data) => {
+                var camelCasedIconLibrary = iconLib.replace(/-([a-z])/g, function (g) { return g[1].toUpperCase(); }).replace(/\.[a-z.]+$/, '');
+                let newLibrary = {};
+                newLibrary[camelCasedIconLibrary] = data;
+                Object.assign(this.iconLibraries, newLibrary);  // new icon library merge
+                if (i + 1 === this.options.iconLibraries.length) {
+                    //set icon and sidebar list
+                    this._setIconAndSidebarList();
 
-                        this.activeLibraryId = this.sideBarList[0]['library-id'];
+                    this.activeLibraryId = this.sideBarList[0]['library-id'];
 
-                        //sidebar list markup push
-                        this.sidebarTabs.innerHTML = this._sideBarListMarkup(this.sideBarList);
+                    //sidebar list markup push
+                    this.sidebarTabs.innerHTML = this._sideBarListMarkup(this.sideBarList);
 
-                        //icon markup push
-                        this.previewWrap.innerHTML = this.iconMarkup;
+                    //icon markup push
+                    this.previewWrap.innerHTML = this.iconMarkup;
 
-                        // get all icon wrapper dom element
-                        this.iconWrap = this.previewWrap.querySelectorAll('.uip-icon-item');
+                    // get all icon wrapper dom element
+                    this.iconWrap = this.previewWrap.querySelectorAll('.uip-icon-item');
 
-                        //set event lisner to search input
-                        this.searchInput.addEventListener('keyup', debounce(this._searchFunc, 100).bind(this), false);
+                    //set event lisner to search input
+                    this.searchInput.addEventListener('keyup', debounce(this._searchFunc, 100).bind(this), false);
 
-                        //get all sidebar list item wrapper dom element
-                        this.sideBarBtn = this.sidebarTabs.querySelectorAll('.uip-modal--sidebar-tab-item');
+                    //get all sidebar list item wrapper dom element
+                    this.sideBarBtn = this.sidebarTabs.querySelectorAll('.uip-modal--sidebar-tab-item');
 
-                        //set click event lisner to sidebar list item
-                        this.sideBarBtn.forEach((item) => {
-                            item.addEventListener('click', this._clickHandlerFunc.bind(this), false);
-                        });
+                    //set click event lisner to sidebar list item
+                    this.sideBarBtn.forEach((item) => {
+                        item.addEventListener('click', this._clickHandlerFunc.bind(this), false);
+                    });
 
-                        return true;
-                    } else {
-                        return this._loadIconLibraries(i + 1);
-                    }
-                }).catch((error) => {
-                    console.log(error);
-                    return error;
-                });
+                    return true;
+                } else {
+                    return this._loadIconLibraries(i + 1);
+                }
+            }
+            if (typeof iconLibObj === 'string') {
+                let iconLib = iconLibObj;
+                await fetch(iconPickerUrl + 'icons-libraries/' + iconLib)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Success!
+                        _handleIconLib(data);
+                    }).catch((error) => {
+                        console.log(error);
+                        return error;
+                    });
+            } else {
+                _handleIconLib(iconLibObj.name, iconLibObj.json);
+            }
         },
 
         _onBeforeOpen: async function () {
