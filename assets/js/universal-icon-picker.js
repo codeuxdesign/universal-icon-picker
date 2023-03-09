@@ -304,13 +304,15 @@ var loadedDependencies = [];
             }
 
             let iconLibObj = this.options.iconLibraries[i];
+            console.log('_loadIconLibraries', i, iconLibObj);
 
-            let _handleIconLib = (iconLib, data) => {
+            let _handleIconLib = async (iconLib, data) => {
                 var camelCasedIconLibrary = iconLib.replace(/-([a-z])/g, function (g) { return g[1].toUpperCase(); }).replace(/\.[a-z.]+$/, '');
                 let newLibrary = {};
                 newLibrary[camelCasedIconLibrary] = data;
                 Object.assign(this.iconLibraries, newLibrary);  // new icon library merge
                 if (i + 1 === this.options.iconLibraries.length) {
+                    console.log('done loading libraries.');
                     //set icon and sidebar list
                     this._setIconAndSidebarList();
 
@@ -345,15 +347,15 @@ var loadedDependencies = [];
                 let iconLib = iconLibObj;
                 await fetch(iconPickerUrl + 'icons-libraries/' + iconLib)
                     .then(response => response.json())
-                    .then(data => {
+                    .then(async data => {
                         // Success!
-                        _handleIconLib(data);
+                        await _handleIconLib(iconLib, data);
                     }).catch((error) => {
                         console.log(error);
                         return error;
                     });
             } else {
-                _handleIconLib(iconLibObj.name, iconLibObj.json);
+                await _handleIconLib(iconLibObj.name, iconLibObj.json);
             }
         },
 
